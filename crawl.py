@@ -1,6 +1,6 @@
 import requests
 import json
-import execjs
+from encrypt import AESUtil
 
 # for password encode
 def encodeInp(input):
@@ -11,7 +11,6 @@ def encodeInp(input):
 
 class crawler:
     headers = {"User-Agent":'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'}
-    # redis = redis.StrictRedis(host='localhost', port=6379, decode_responses=True)
     session = requests.session()
     logged_in = False
     level2score = {'优':95,'良':85,'中':75,'及格':65,'通过':65,'不及格':59}
@@ -29,18 +28,20 @@ class crawler:
         login_url = 'http://jwglweixin.bupt.edu.cn/bjyddx/login'
         param = {
             'userNo':username,
-            'pwd':encodeInp(password),
-            'encode':1
+            'pwd':AESUtil.encrypt('"'+password+'"',key='qzkj1kjghd=876&*'),
+            'encode':0
         }
         response = self.post(login_url,param)
         try:
             res = json.loads(response.text)
             if res['code'] != '1':
                 print('登录失败')
-                return
-        except Exception:
+                print(res)
+                exit()
+        except Exception as e:
             print('登录失败')
-            return
+            print(e)
+            exit()
 
         self.logged_in = True
         print('登录成功')
@@ -104,7 +105,7 @@ class crawler:
             print('****************************************************')
         for item in score_list:
             special = False
-            if item['type'] == '任选' and (item['nature'] == '公共选修课' or item['nature'] == '校级双创课'):
+            if item['type'] == '任选':
                 special = True
             
             if print_item:
